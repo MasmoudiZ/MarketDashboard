@@ -28,7 +28,15 @@ def main():
     start = (datetime.today() - timedelta(days=370)).strftime("%Y-%m-%d")
     items = [(grp, name, tick) for grp, lst in MACRO_GROUPS.items() for (name, tick) in lst]
     tickers = list({t for _, _, t in items})
-    px = yf.download(tickers, start=start, progress=False)["Adj Close"]
+    px = yf.download(tickers, start=start, progress=False, auto_adjust=False)   
+    if ("Adj Close" in px):
+        px = px["Adj Close"]
+    else:
+    # fallback si Yahoo renvoie 'Close' (rare si auto_adjust=False, mais safe)
+        px = px["Close"]
+
+    # drop des colonnes vides
+    px = px.dropna(how="all", axis=1)
 
     rows = []
     for grp, name, t in items:

@@ -22,7 +22,7 @@ SP500_SECTORS = {
     "Cons. Staples": "XLP",
 }
 
-# Stoxx 600 — proxies iShares/ETF (adapte si besoin; manquants => "—")
+# Stoxx 600 — proxies iShares/ETF (adapte si besoin)
 STOXX600_SECTORS = {
     "Banks": "EXV1.DE",
     "Utilities": "EXH7.DE",
@@ -67,3 +67,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

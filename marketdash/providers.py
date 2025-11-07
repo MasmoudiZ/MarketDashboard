@@ -1,6 +1,5 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
-from pathlib import Path
 import os, time, json, requests
 import pandas as pd
 import yfinance as yf
@@ -29,13 +28,11 @@ _TE_BASE = "https://api.tradingeconomics.com"
 
 def _te_key() -> str:
     k = os.getenv("TE_API_KEY", "").strip()
-    if k:
-        return k
-    return ""  # on tolère vide => appel public très limité
+    return k  # peut être vide (limité)
 
 def te_get(path: str, **params) -> list[dict]:
     """
-    GET basique TE. Gère la clé, les erreurs simples et retourne du JSON (list/dict).
+    GET basique TE. Gère la clé, les erreurs simples et retourne du JSON.
     """
     params = {k: v for k, v in params.items() if v is not None}
     key = _te_key()
@@ -44,7 +41,7 @@ def te_get(path: str, **params) -> list[dict]:
     url = f"{_TE_BASE.rstrip('/')}/{path.lstrip('/')}"
     r = requests.get(url, params=params, timeout=20)
     if r.status_code == 429:
-        time.sleep(1.0)  # petit cool-down
+        time.sleep(1.0)
         r = requests.get(url, params=params, timeout=20)
     r.raise_for_status()
     try:
@@ -63,10 +60,10 @@ def te_history(symbol: str, start: datetime | None = None, end: datetime | None 
     data = te_get(f"historical/series/{symbol}", **params)
     if not data:
         return pd.Series(dtype=float)
-    # TE renvoie [{'Date': '2024-01-02T00:00:00', 'Value': 2.34}, ...]
     df = pd.DataFrame(data)
     if df.empty or "Date" not in df or "Value" not in df:
         return pd.Series(dtype=float)
-    s = pd.to_datetime(df["Date"]).dt.tz_localize(None)
-    out = pd.Series(df["Value"].astype(float).values, index=s).sort_index().dropna()
+    dates = pd.to_datetime(df["Date"]).tz_localize(None)
+    out = pd.Series(df["Value"].astype(float).values, index=dates).sort_index().dropna()
     return out
+
