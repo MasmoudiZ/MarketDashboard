@@ -1,0 +1,10 @@
+sources:
+  sp500:
+    provider: yfinance
+    tickers:
+      - XLK
+      - XLF
+      - XLE
+  stoxx600:
+    provider: tradingeconomics
+    country: europe
