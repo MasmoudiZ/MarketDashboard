@@ -1,3 +1,6 @@
 cache_dir: data
 output_dir: output
-# Tu peux y ajouter d'autres univers plus tard
+# te_api_key: "user:token"   # si tu veux la poser ici et exporter aussi TE_API_KEY en env
+paths:
+  macro_csv: data/macro_dashboard.csv
+  output_macro: output/macro_dashboard_legacy_style.png
