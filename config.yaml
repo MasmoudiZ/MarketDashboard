@@ -4,3 +4,19 @@ output_dir: output
 paths:
   macro_csv: data/macro_dashboard.csv
   output_macro: output/macro_dashboard_legacy_style.png
+
+rates:
+  start: "2020-01-01"
+  tickers:
+    "Taux US 2 ans": "^UST2Y"
+    "Taux US 10 ans": "^TNX"
+    "Taux All. 2 ans": "DE2Y.BOND"
+    "Taux All. 10 ans": "DE10Y.BOND"
+
+credit:
+  start: "2020-01-01"
+  tickers:
+    "iTraxx Europe": "^ITRXE"
+    "iTraxx Xover": "^ITRXXO"
+    "CDX NA IG": "^CDXIG"
+    "CDX NA HY": "^CDXHY"
