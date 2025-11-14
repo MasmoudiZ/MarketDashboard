@@ -38,13 +38,13 @@ COLOR_TEXT   = "#1E1E1E"
 MARGIN_L, MARGIN_R = 25, 15
 MARGIN_T, MARGIN_B = 10, 12
 GUTTER_COL = 40
-BLOCK_V_SPACING = 6
+BLOCK_V_SPACING = 10
 
 CAT_W = 120
 HDR_H = 24
 ROW_H = 18
 
-COL_W = 410
+COL_W = 430
 
 # Police
 try:
@@ -122,6 +122,12 @@ def draw_macro_block(
     x_last  = x_level + col_level_w
     x_ytd   = x_last + col_last_w
 
+    # Petit gap visuel entre Last Week et Perf Ytd
+    GAP = 6  # ~ 6 pixels à 100 DPI
+    x_ytd   += GAP
+    col_ytd_w -= GAP
+
+
     # Header text (remonté de 2 px)
     header_y = y0 + HDR_H / 2 + 2
 
@@ -154,17 +160,37 @@ def draw_macro_block(
         ax.text(x_level + col_level_w - 4, y_row + ROW_H/2,
                 fmt_level(level), ha="right", va="center", color=COLOR_TEXT)
 
-        # LastWeek (barre fine + offset)
-        bar_w = 6
-        bar_h = ROW_H - 10
-        bar_x = x_last + 6
-        bar_y = y_row + (ROW_H - bar_h)/2
-
+                # LastWeek (barre fine + offset, sans chevauchement avec le texte)
         if not pd.isna(lastw):
             col = COLOR_POS if lastw >= 0 else COLOR_NEG
-            ax.add_patch(Rectangle((bar_x, bar_y), bar_w, bar_h, facecolor=col))
-            ax.text(x_last + col_last_w - 6, y_row + ROW_H/2,   # -6 px
-                    fmt_pct(lastw), ha="right", va="center", color=col)
+
+            # petite barre, bien collée à la gauche de la colonne
+            bar_w = min(4, col_last_w * 0.25)
+            bar_h = ROW_H - 8
+            bar_x = x_last + 4
+            bar_y = y_row + (ROW_H - bar_h) / 2
+
+            ax.add_patch(
+                Rectangle(
+                    (bar_x, bar_y),
+                    bar_w,
+                    bar_h,
+                    facecolor=col,
+                    zorder=1,   # derrière le texte
+                )
+            )
+
+            # texte collé à la droite de la colonne, au-dessus de la barre
+            ax.text(
+                x_last + col_last_w - 2,
+                y_row + ROW_H / 2,
+                fmt_pct(lastw),
+                ha="right",
+                va="center",
+                color=col,
+                zorder=2,   # au-dessus de la barre
+            )
+
 
         # Perf YTD (jauge fine)
         gauge_margin = 5
@@ -190,6 +216,18 @@ def draw_macro_block(
 # ======================================================================
 # MAIN
 # ======================================================================
+# Mapping nom de groupe (dans le CSV) -> label affiché dans la vignette
+GROUP_LABELS = {
+    "Actions Monde": "Actions\nMonde",
+    "Actions Etats-Unis": "Actions\nEtats-Unis",
+    "Actions Europe": "Actions\nEurope",
+    "Actions Asie / Emergents": "Actions\nAsie/Emergents",
+    # Les autres restent sur une ligne
+    "Obligations": "Obligations",
+    "Taux": "Taux",
+    "Changes": "Changes",
+    "Matières 1ères": "Matières 1ères",
+}
 
 def main():
     data_dir, output_dir = get_paths()
@@ -225,16 +263,20 @@ def main():
     y = MARGIN_T
     for g in left:
         block_df = df[df["Groupe"] == g].copy()
-        h = draw_macro_block(ax, MARGIN_L, y, COL_W, g, block_df, max_abs_ytd)
+        label = GROUP_LABELS.get(g, g)  # texte affiché (avec éventuel saut de ligne)
+        h = draw_macro_block(ax, MARGIN_L, y, COL_W, label, block_df, max_abs_ytd)
         y += h
+
 
     # Droite
     x_right = MARGIN_L + COL_W + GUTTER_COL
     y = MARGIN_T
     for g in right:
         block_df = df[df["Groupe"] == g].copy()
-        h = draw_macro_block(ax, x_right, y, COL_W, g, block_df, max_abs_ytd)
+        label = GROUP_LABELS.get(g, g)
+        h = draw_macro_block(ax, x_right, y, COL_W, label, block_df, max_abs_ytd)
         y += h
+
 
     out = output_dir / "macro_dashboard_legacy_strategy.png"
     fig.savefig(out, dpi=DPI, bbox_inches="tight")
