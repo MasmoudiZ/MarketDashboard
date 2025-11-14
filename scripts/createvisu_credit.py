@@ -22,8 +22,9 @@ def load_credit_df() -> pd.DataFrame:
 
     df = pd.read_csv(csv_path, parse_dates=["date"], index_col="date")
     df = df.loc[df.index >= START_PLOT]
-    df_m = df.resample("MS").last().dropna(how="all")
-    return df_m
+    # 🔁 hebdo : un point par semaine (vendredi)
+    df_w = df.resample("W-FRI").last().dropna(how="all")
+    return df_w
 
 
 def save_fig(fig: plt.Figure, filename: str) -> None:
